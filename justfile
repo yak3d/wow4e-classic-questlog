@@ -61,6 +61,63 @@ reset:
 lint:
     @if command -v luacheck >/dev/null 2>&1; then luacheck {{ quote(ADDON_NAME) }}; else echo "luacheck not found; install with: luarocks install luacheck"; fi
 
+# Tag the latest main with a version, push the tag and watch the release build
+release version="":
+    #!/usr/bin/env bash
+    # Asks for the version when none is given. The tag triggers .github/workflows/addon.yml, which makes the
+    # GitHub release and uploads to Wago; a version with -alpha or -beta becomes a prerelease. Needs git, and gh
+    # for the CI check and for watching the run.
+    set -euo pipefail
+    cd {{ quote(justfile_directory()) }}
+    die() { echo "$*" >&2; exit 1; }
+
+    git fetch --quiet origin main --tags
+    latest=$(git tag --list 'v*' --sort=-v:refname | head -n 1)
+    version={{ quote(version) }}
+    if [ -z "$version" ]; then
+        echo "Latest tag: ${latest:-none}"
+        read -r -p "New version (for example v0.3.0 or v0.3.0-beta1): " version
+    fi
+    version="v${version#v}"
+    [[ $version =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta)[.0-9]*)?$ ]] \
+        || die "Not a version: $version (use vMAJOR.MINOR.PATCH, optionally -alpha or -beta plus a number)"
+    git rev-parse -q --verify "refs/tags/$version" >/dev/null && die "Tag $version already exists"
+    [ -z "$(git ls-remote --tags origin "refs/tags/$version")" ] || die "Tag $version already exists on origin"
+
+    sha=$(git rev-parse origin/main)
+    echo
+    echo "Release $version from origin/main ($(git log -1 --format='%h %s' "$sha"))"
+    if [ -n "$latest" ]; then echo "Since $latest:"; git log --format='  %h %s' "$latest..$sha" | head -n 20; fi
+    case $version in *-alpha*|*-beta*) echo "This is a prerelease." ;; esac
+
+    if command -v gh >/dev/null 2>&1; then
+        state=$(gh run list --workflow addon.yml --commit "$sha" --limit 1 --json status,conclusion \
+            --jq '.[0] | (.conclusion // .status)' 2>/dev/null || true)
+        echo "CI on that commit: ${state:-no run found}"
+        [ "$state" = success ] || echo "WARNING: CI has not passed on that commit."
+        gh secret list 2>/dev/null | grep -q '^WAGO_API_TOKEN' \
+            || echo "WARNING: no WAGO_API_TOKEN secret on the repository, so nothing will be uploaded to Wago."
+    fi
+
+    read -r -p "Tag and push $version? [y/N] " answer
+    [[ $answer =~ ^[Yy]$ ]] || die "Cancelled."
+
+    git tag -a "$version" -m "Classic Quest Log $version" "$sha"
+    git push origin "$version"
+    echo "Pushed $version."
+
+    command -v gh >/dev/null 2>&1 || exit 0
+    echo "Waiting for the release run to start..."
+    run=""
+    for _ in 1 2 3 4 5 6 7 8 9 10; do
+        run=$(gh run list --workflow addon.yml --branch "$version" --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+        [ -n "$run" ] && break
+        sleep 3
+    done
+    [ -n "$run" ] || die "No run found; check the Actions tab."
+    gh run watch "$run" --exit-status
+    gh release view "$version" --json url --jq .url
+
 # Runs `action` (link or unlink) for each flavor folder that exists under
 # WOW_DIR, skipping the rest, and fails if none exist. An empty `flavor` means
 # every entry in FLAVORS.
