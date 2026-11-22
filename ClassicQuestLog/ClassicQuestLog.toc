@@ -12,7 +12,7 @@
 ## OptionalDeps: Spoken_Quests, Spoken
 ## X-License: GPL-3.0-only
 ## X-Website: https://github.com/yak3d/wow4e-classic-questlog
-## X-Wago-ID: BNBw006x
+## X-Wago-ID: jK8W0l6y
 
 # Load order: strings -> boot -> dev tools -> public API -> module Lua (mixins) -> XML -> hooks -> settings
 Locale.lua
