@@ -14,10 +14,11 @@
 ## X-Website: https://github.com/yak3d/wow4e-classic-questlog
 ## X-Wago-ID: BNBw006x
 
-# Load order: strings -> boot -> dev tools -> module Lua (mixins) -> XML -> hooks -> settings
+# Load order: strings -> boot -> dev tools -> public API -> module Lua (mixins) -> XML -> hooks -> settings
 Locale.lua
 Core.lua
 Dev.lua
+API.lua
 QuestList.lua
 Detail.lua
 Actions.lua

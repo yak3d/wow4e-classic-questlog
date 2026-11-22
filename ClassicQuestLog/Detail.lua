@@ -112,6 +112,16 @@ local function AnchorScrollBar(withRewards)
     end
 end
 
+-- Resizes the rewards panel and tells listeners when its height really changed
+-- (it follows the scroll, so this runs on every scroll step).
+local function SetContainerHeight(container, height)
+    local changed = math.abs(container:GetHeight() - height) > 0.01
+    container:SetHeight(height)
+    if changed then
+        ns.API.Fire("DetailLayout")
+    end
+end
+
 -- Shrinks the rewards panel while there is text left to scroll past it, and
 -- grows it back as the text reaches the end (the map's
 -- AdjustRewardsFrameContainer). isFixedHeight is nil until the first call
@@ -129,13 +139,13 @@ local function AdjustRewardsFrameContainer()
     if container.isFixedHeight == nil then
         container.isFixedHeight = scrollRange == 0 or QuestInfo_GetNumRewardRows() <= 1
         if container.isFixedHeight then
-            container:SetHeight(rewardsHeight)
+            SetContainerHeight(container, rewardsHeight)
             return
         end
     end
 
     local pixelsToHide = scrollRange - scroll:GetVerticalScroll()
-    container:SetHeight(math.max(rewardsHeight - pixelsToHide, REWARDS_MIN_HEIGHT))
+    SetContainerHeight(container, math.max(rewardsHeight - pixelsToHide, REWARDS_MIN_HEIGHT))
 end
 
 -- The map's SetRewardsHeight: the text's closing spacer matches the panel, so
@@ -157,6 +167,8 @@ local function ShowEmpty()
     detailFrame.ScrollFrame:Hide()
     detailFrame.RewardsFrameContainer:Hide()
     detailFrame.SealMaterialBG:Hide()
+    ns.SpokenButtons.UpdateDetail(nil)
+    ns.API.Fire("DetailShown", nil)
 end
 
 local function HideEmpty()
@@ -172,7 +184,6 @@ function ns.Detail.Show(questID)
 
     if not questID or questID == 0 then
         ShowEmpty()
-        ns.SpokenButtons.UpdateDetail(nil)
         return
     end
 
@@ -217,6 +228,8 @@ function ns.Detail.Show(questID)
     -- Spoken Quests' round Play / Report / Contribute strip on the header; a
     -- no-op without the addon.
     ns.SpokenButtons.UpdateDetail(questID)
+
+    ns.API.Fire("DetailShown", questID)
 end
 
 function ns.Detail.RefreshSelected()
@@ -228,7 +241,6 @@ function ns.Detail.RefreshSelected()
         ns.Detail.Show(questID)
     else
         ShowEmpty()
-        ns.SpokenButtons.UpdateDetail(nil)
     end
 end
 

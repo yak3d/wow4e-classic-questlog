@@ -79,6 +79,9 @@ function ClassicQuestLogQuestRowMixin:Init(node)
     -- Spoken Quests' Play / Contribute button on this row, when the addon is
     -- installed and its quest log buttons are on; a no-op without it.
     ns.SpokenButtons.DressRow(self, node)
+
+    -- Last, so a listener decorating the title sees its final anchors.
+    ns.API.Fire("RowInit", self, node.questID, self.Title)
 end
 
 function ClassicQuestLogQuestRowMixin:SetSelectedState(selected)
@@ -372,6 +375,19 @@ function ns.QuestList.Init(parent)
     eventFrame = CreateFrame("Frame")
     eventFrame:SetScript("OnEvent", function()
         ScheduleRefresh()
+    end)
+end
+
+-- Calls fn(row, questID, titleFontString) for each quest row the ScrollBox
+-- currently holds (headers are skipped).
+function ns.QuestList.ForEachQuestRow(fn)
+    if not scrollBox then
+        return
+    end
+    scrollBox:ForEachFrame(function(row, node)
+        if node and not node.isHeader then
+            fn(row, node.questID, row.Title)
+        end
     end)
 end
 
