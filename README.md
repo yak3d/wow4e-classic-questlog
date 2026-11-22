@@ -135,5 +135,9 @@ your Wago account); without it the packager skips Wago and only makes the
 GitHub release. The project ID comes from `## X-Wago-ID` in the TOC.
 
 ```shell
-git tag v1.0.0 && git push origin v1.0.0
+just release            # asks for the version, tags the latest main, pushes the tag
+just release v1.0.0     # or give it up front
 ```
+
+It fetches, checks the version is new and CI passed on the commit, asks for confirmation, then
+tags `origin/main`, pushes the tag and watches the run until the release is up.
