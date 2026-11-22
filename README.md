@@ -56,6 +56,31 @@ buttons in the quest log" toggle — control them; there is no separate
 Classic Quest Log setting. Check what the integration sees with
 `/cql test spoken`.
 
+## For addon authors
+
+The log exposes a small public API, `ClassicQuestLogAPI` (`version = 1`), so other addons can decorate it
+without reaching into its internals. Forever Quest Tint is the first user.
+
+| Call | Returns |
+| ---- | ------- |
+| `GetFrame()` | the window, `ClassicQuestLogFrame` |
+| `GetDetailFrame()` | the quest details pane |
+| `GetDetailParchment()` | the pane's parchment texture (the world map's quest details atlas) |
+| `GetDetailHeader()` | the strip along the top of the pane |
+| `GetDisplayedQuestID()` | the quest the pane shows; nil when it is empty or the log is closed |
+| `ForEachQuestRow(fn)` | calls `fn(row, questID, titleFontString)` for each quest row in the list |
+
+Changes are announced through `EventRegistry` (`EventRegistry:RegisterCallback(name, fn, owner)`):
+
+| Event | Arguments | When |
+| ----- | --------- | ---- |
+| `ClassicQuestLog.DetailShown` | `questID` or nil | the pane was filled for a quest, or emptied |
+| `ClassicQuestLog.DetailLayout` | none | the rewards panel changed height while the text scrolled |
+| `ClassicQuestLog.RowInit` | `row, questID, titleFontString` | a list row was filled; its title is plain text again |
+| `ClassicQuestLog.WindowHidden` | none | the window closed |
+
+The names are also in `ClassicQuestLogAPI.Events`.
+
 ## Development
 
 You need [`just`](https://github.com/casey/just), and Git Bash on Windows.

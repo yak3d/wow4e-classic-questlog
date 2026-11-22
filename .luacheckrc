@@ -23,6 +23,7 @@ exclude_files = {
 globals = {
     "ClassicQuestLogDB",
     "ClassicQuestLogCharDB",
+    "ClassicQuestLogAPI",
     "SLASH_CLASSICQUESTLOG1",
     "SLASH_CLASSICQUESTLOG2",
     "SlashCmdList",

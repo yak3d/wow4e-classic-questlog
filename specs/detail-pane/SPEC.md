@@ -45,4 +45,6 @@ the Abandon / Share / Track buttons sit. Files: `Detail.lua` and the `Detail` su
 
 - Receives quest IDs from `quest-list`. It never selects quests.
 - Calls `spoken-integration` after each display to update the strip of Spoken buttons on the header.
+- Announces `DetailShown` and `DetailLayout` through `public-api` after each display and when the
+  rewards panel resizes.
 - Listens to `QUEST_LOG_UPDATE`, `QUEST_FINISHED` and `CVAR_UPDATE` only while the window is shown.

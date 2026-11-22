@@ -31,17 +31,18 @@ own events on its own `CreateFrame("Frame")`.
 | Detail | `Detail.lua` (+ `Detail` subtree in `Frame.xml`) | See `detail-pane`. |
 | Actions | `Actions.lua` | Abandon/Share/Track and Show Map buttons, their enable rules and combat gate, and modified row clicks. Delegates to Blizzard's `QuestMapQuestOptions_*` functions. |
 | Spoken | `SpokenButtons.lua` | See `spoken-integration`. |
+| API | `API.lua` | See `public-api`. |
 | Hooks | `Hooks.lua` | See `blizzard-takeover`. |
 | Settings | `Settings.lua` | The Settings → AddOns panel. Every DB key is registered with a live-apply callback, which `ns.Settings.ApplyLive` also gives to the Dev `set` verb. |
 
-**Load order** (the TOC): strings → boot → dev → module Lua → XML → hooks → settings. Mixins are
+**Load order** (the TOC): strings → boot → dev → public API → module Lua → XML → hooks → settings. Mixins are
 globals defined in Lua before the XML that names them with `mixin=`. The frame's `OnLoad` runs
 before `ADDON_LOADED`, so modules tolerate a missing `ns.db`. Core then re-applies the layout and
 the search setting once the DB exists.
 
 **Call edges:** Frame initialises QuestList, Detail, Search, Filters and Actions. QuestList calls
 Search and Filters while building, then Detail, Actions and Frame (the count) on refresh. Detail and
-QuestList rows call Spoken. Hooks and Core call Frame. Settings calls Hooks, Frame, QuestList and
+QuestList rows call Spoken and fire the API's events. Hooks and Core call Frame. Settings calls Hooks, Frame, QuestList and
 Search. Modules call each other only through public `ns.<Module>` functions.
 
 ## Data

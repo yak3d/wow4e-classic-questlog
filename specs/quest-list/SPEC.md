@@ -66,6 +66,8 @@ ScrollBox, header and row templates, selection, search and filters. Files: `Ques
 - Hands row clicks to `ns.Actions.RowClicked`, details to `ns.Detail.Show` and the count to
   `ns.Frame.SetQuestCount`.
 - Each row's Spoken buttons are dressed by `spoken-integration` from the row's `Init`.
+- The row's `Init` ends by firing `RowInit` through `public-api`, and `ForEachQuestRow` serves its
+  `ns.QuestList.ForEachQuestRow` backs the API's getter of the same name.
 
 ## Known limitations
 

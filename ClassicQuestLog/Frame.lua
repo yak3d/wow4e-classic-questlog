@@ -256,4 +256,5 @@ function ClassicQuestLogFrameMixin:OnHide()
     if QuestLogMicroButton then
         QuestLogMicroButton:UpdateMicroButton()
     end
+    ns.API.Fire("WindowHidden")
 end
