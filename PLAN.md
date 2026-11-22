@@ -109,6 +109,7 @@ into that tree.
 | `Frame.xml` | — | `ClassicQuestLogFrame` tree | Stage 1 |
 | `Hooks.lua` | `ns.Hooks` | L takeover, micro button, map panel, tracker routing | Stage 5 |
 | `Settings.lua` | `ns.Settings` | Settings → AddOns panel | rebuilt Stage 6 |
+| `API.lua` | `ns.API`, `ClassicQuestLogAPI` | public getters and `ClassicQuestLog.*` events for other addons (see `specs/public-api`) | after Stage 7 |
 
 ---
 
