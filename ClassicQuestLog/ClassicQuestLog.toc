@@ -1,0 +1,31 @@
+## Interface: 16001
+## Title: Classic Quest Log
+## Notes: The classic quest log for WoW Forever: zone list, parchment details, Abandon/Share/Track. Opens with L.
+## Author: Yak
+## Version: @project-version@
+## IconTexture: Interface\QuestFrame\UI-QuestLog-BookIcon
+## Category: Quests
+## AllowLoadGameType: camelot
+## SavedVariables: ClassicQuestLogDB
+## SavedVariablesPerCharacter: ClassicQuestLogCharDB
+## LoadSavedVariablesFirst: 1
+## OptionalDeps: Spoken_Quests, Spoken
+## X-License: GPL-3.0-only
+## X-Website: https://github.com/yak3d/wow4e-classic-questlog
+## X-Wago-ID: BNBw006x
+
+# Load order: strings -> boot -> dev tools -> module Lua (mixins) -> XML -> hooks -> settings
+Locale.lua
+Core.lua
+Dev.lua
+QuestList.lua
+Detail.lua
+Actions.lua
+Search.lua
+Filters.lua
+SpokenButtons.lua
+Frame.lua
+Templates.xml
+Frame.xml
+Hooks.lua
+Settings.lua

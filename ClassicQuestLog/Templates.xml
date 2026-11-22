@@ -1,0 +1,111 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+
+  <!-- Zone header, 26 tall. Copies the visuals of Camelot SkillsHeaderTemplate
+       without inheriting its Skills-tied mixin: a collapseExpand bar with a
+       plus/minus state icon on the right. -->
+  <Button name="ClassicQuestLogHeaderTemplate" virtual="true" mixin="ClassicQuestLogHeaderMixin">
+    <Size x="0" y="26"/>
+    <Layers>
+      <Layer level="BACKGROUND">
+        <Texture parentKey="Background" atlas="common-button-list-collapseExpand" setAllPoints="true"/>
+      </Layer>
+      <Layer level="HIGHLIGHT">
+        <Texture parentKey="Highlight" atlas="common-button-list-collapseExpand" alphaMode="ADD" alpha="0.3" setAllPoints="true"/>
+      </Layer>
+      <Layer level="BORDER">
+        <!-- Atlas set in code with UseAtlasSize; plus when collapsed, minus when expanded. -->
+        <Texture parentKey="StateIcon">
+          <Anchors>
+            <Anchor point="RIGHT" x="-8" y="-1"/>
+          </Anchors>
+        </Texture>
+      </Layer>
+      <Layer level="OVERLAY">
+        <FontString parentKey="Name" inherits="GameFontNormalLeft" justifyH="LEFT">
+          <Anchors>
+            <Anchor point="LEFT" x="10" y="0"/>
+            <Anchor point="RIGHT" x="-24" y="0"/>
+          </Anchors>
+        </FontString>
+      </Layer>
+    </Layers>
+    <Scripts>
+      <OnClick method="OnClick"/>
+    </Scripts>
+  </Button>
+
+  <!-- Quest row, 20 tall. Hover and selection are the Professions recipe-list
+       overlays (ProfessionsRecipeListRecipeTemplate), stretched to the row
+       width; the watch check sits on the left. -->
+  <Button name="ClassicQuestLogQuestRowTemplate" virtual="true" mixin="ClassicQuestLogQuestRowMixin">
+    <Size x="0" y="20"/>
+    <Layers>
+      <Layer level="BORDER">
+        <Texture parentKey="Check" atlas="questlog-icon-checkmark-yellow" hidden="true">
+          <Size x="14" y="14"/>
+          <Anchors>
+            <Anchor point="LEFT" x="6" y="0"/>
+          </Anchors>
+        </Texture>
+      </Layer>
+      <Layer level="OVERLAY">
+        <FontString parentKey="GroupMates" inherits="GameFontNormalSmall" justifyH="LEFT">
+          <Anchors>
+            <Anchor point="LEFT" x="22" y="0"/>
+          </Anchors>
+        </FontString>
+        <FontString parentKey="Tag" inherits="GameFontNormalSmall" justifyH="RIGHT">
+          <Anchors>
+            <Anchor point="RIGHT" x="-6" y="0"/>
+          </Anchors>
+        </FontString>
+        <FontString parentKey="Title" inherits="GameFontNormalLeft" justifyH="LEFT" text="">
+          <Anchors>
+            <Anchor point="LEFT" x="24" y="0"/>
+            <Anchor point="RIGHT" x="-60" y="0"/>
+          </Anchors>
+        </FontString>
+      </Layer>
+      <!-- useAtlasSize gives the native height; the LEFT/RIGHT anchors stretch
+           the width to the row in both layouts. -->
+      <Layer level="OVERLAY" textureSubLevel="2">
+        <Texture parentKey="SelectedOverlay" atlas="Professions_Recipe_Active" useAtlasSize="true" hidden="true">
+          <Anchors>
+            <Anchor point="LEFT" x="0" y="-1"/>
+            <Anchor point="RIGHT" x="0" y="-1"/>
+          </Anchors>
+        </Texture>
+      </Layer>
+      <Layer level="HIGHLIGHT">
+        <Texture parentKey="HighlightOverlay" atlas="Professions_Recipe_Hover" useAtlasSize="true" alpha="0.5">
+          <Anchors>
+            <Anchor point="LEFT" x="0" y="-1"/>
+            <Anchor point="RIGHT" x="0" y="-1"/>
+          </Anchors>
+        </Texture>
+      </Layer>
+    </Layers>
+    <Frames>
+      <!-- Spoken Quests' Play and Contribute buttons, dressed and bound at
+           runtime by SpokenButtons.lua. Hidden without Spoken Quests. -->
+      <Button parentKey="PlayButton" hidden="true">
+        <Size x="16" y="16"/>
+        <Anchors>
+          <Anchor point="LEFT" x="3" y="0"/>
+        </Anchors>
+      </Button>
+      <Button parentKey="ContributeButton" hidden="true">
+        <Size x="18" y="18"/>
+        <Anchors>
+          <Anchor point="LEFT" x="2" y="0"/>
+        </Anchors>
+      </Button>
+    </Frames>
+    <Scripts>
+      <OnEnter method="OnEnter"/>
+      <OnLeave method="OnLeave"/>
+      <OnClick method="OnClick"/>
+    </Scripts>
+  </Button>
+
+</Ui>

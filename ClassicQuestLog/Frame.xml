@@ -1,0 +1,314 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+
+  <!-- Top level: a Blizzard UI panel that docks left, pushes other panels and
+       closes with Esc. The attic (y 0..-60) holds the count and Show Map, with
+       the search row just under it (y -62..-82). There is no bottom button bar:
+       the panes run down to the frame's 4px bottom inset, and the close box
+       and Esc close the window. ButtonFrameBaseTemplate, not ButtonFrameTemplate:
+       the latter adds its own Inset, which ours would only shadow, leaving its
+       border drawn across the list. -->
+  <Frame name="ClassicQuestLogFrame" parent="UIParent" toplevel="true" hidden="true" enableMouse="true"
+         inherits="ButtonFrameBaseTemplate" mixin="ClassicQuestLogFrameMixin">
+    <Size x="644" y="572"/>
+
+    <Scripts>
+      <OnLoad method="OnLoad"/>
+      <OnShow method="OnShow"/>
+      <OnHide method="OnHide"/>
+    </Scripts>
+
+    <Frames>
+      <!-- Quest count: "Quests: %d/%d", red at the cap. -->
+      <Frame parentKey="CountFrame" name="$parentCountFrame">
+        <Size x="110" y="20"/>
+        <Anchors>
+          <Anchor point="TOPLEFT" x="64" y="-32"/>
+        </Anchors>
+        <Layers>
+          <Layer level="BACKGROUND">
+            <Texture atlas="common-dropdown-textholder" setAllPoints="true"/>
+          </Layer>
+          <Layer level="OVERLAY">
+            <FontString parentKey="Text" inherits="GameFontNormalSmall" justifyH="CENTER">
+              <Anchors>
+                <Anchor point="TOPLEFT" x="8" y="0"/>
+                <Anchor point="BOTTOMRIGHT" x="-8" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+      </Frame>
+
+      <!-- Forever search bar and filter dropdown, as in the Professions recipe
+           list. Anchored to the list pane in Frame.ApplyLayout; the filter
+           entries come from Filters.lua. -->
+      <DropdownButton parentKey="FilterDropdown" name="$parentFilterDropdown" inherits="WowStyle1FilterDropdownTemplate">
+        <KeyValues>
+          <KeyValue key="smartNavigationIgnored" value="true" type="boolean"/>
+          <KeyValue key="resizeToTextPadding" value="44" type="number"/>
+        </KeyValues>
+        <Size x="135" y="20"/>
+      </DropdownButton>
+      <EditBox parentKey="SearchBox" name="$parentSearchBox" autoFocus="false" inherits="SearchBoxTemplate">
+        <KeyValues>
+          <KeyValue key="smartNavigationIgnored" value="true" type="boolean"/>
+        </KeyValues>
+        <Size y="20"/>
+      </EditBox>
+
+      <!-- Show Map: opens the World Map on the quest's zone and pings it.
+           Same build as Blizzard's popup button. -->
+      <Button parentKey="ShowMapButton" name="$parentShowMapButton">
+        <Size x="96" y="24"/>
+        <Anchors>
+          <Anchor point="TOPRIGHT" x="-10" y="-28"/>
+        </Anchors>
+        <NormalTexture file="Interface\QuestFrame\UI-QuestMap_Button">
+          <Size x="20" y="20"/>
+          <Anchors>
+            <Anchor point="LEFT" x="2" y="0"/>
+          </Anchors>
+          <TexCoords left="0.125" right="0.875" top="0" bottom="0.5"/>
+        </NormalTexture>
+        <PushedTexture file="Interface\QuestFrame\UI-QuestMap_Button">
+          <Size x="20" y="20"/>
+          <Anchors>
+            <Anchor point="LEFT" x="2" y="0"/>
+          </Anchors>
+          <TexCoords left="0.125" right="0.875" top="0.5" bottom="1"/>
+        </PushedTexture>
+        <HighlightTexture file="Interface\BUTTONS\ButtonHilight-Square" alphaMode="ADD">
+          <Size x="20" y="20"/>
+          <Anchors>
+            <Anchor point="LEFT" x="2" y="0"/>
+          </Anchors>
+        </HighlightTexture>
+        <ButtonText parentKey="Text" inherits="GameFontNormal" justifyH="LEFT">
+          <Anchors>
+            <Anchor point="LEFT" x="26" y="0"/>
+            <Anchor point="RIGHT" x="-2" y="0"/>
+          </Anchors>
+        </ButtonText>
+      </Button>
+
+      <!-- The list pane. -->
+      <Frame parentKey="Inset" name="$parentInset" inherits="InsetFrameTemplate">
+        <Frames>
+          <Frame parentKey="QuestList">
+            <Anchors>
+              <Anchor point="TOPLEFT" x="4" y="-4"/>
+              <Anchor point="BOTTOMRIGHT" x="-18" y="4"/>
+            </Anchors>
+            <Frames>
+              <Frame parentKey="ScrollBox" name="ClassicQuestLogListScrollBox" inherits="WowScrollBoxList">
+                <Anchors>
+                  <Anchor point="TOPLEFT" x="0" y="0"/>
+                  <Anchor point="BOTTOMRIGHT" x="0" y="0"/>
+                </Anchors>
+              </Frame>
+              <!-- Camelot anchoring: a chevron scrollbar hugging the right
+                   edge. Anchored to the ScrollBox in QuestList.Init. -->
+              <EventFrame parentKey="ScrollBar" name="ClassicQuestLogListScrollBar" inherits="MinimalScrollBar"/>
+            </Frames>
+            <Layers>
+              <Layer level="OVERLAY">
+                <FontString parentKey="EmptyText" inherits="GameFontDisable" text="QUEST_LOG_NO_QUESTS" justifyH="CENTER">
+                  <Size x="260" y="0"/>
+                  <Anchors>
+                    <Anchor point="CENTER"/>
+                  </Anchors>
+                </FontString>
+              </Layer>
+            </Layers>
+          </Frame>
+        </Frames>
+      </Frame>
+
+      <!-- The detail pane, built like the world map's quest details pane
+           (QuestMapFrame.QuestsFrame.DetailsFrame): a header strip, the quest
+           text over a parchment inside the quest log border, rewards pinned
+           to the bottom, and the quest buttons underneath. It is wider than
+           the map's 308 (ns.Frame.DETAIL_WIDTH), so the header and rewards
+           art is anchored on both sides and stretches. QuestInfo_Display reaches this frame via
+           ScrollChild:GetParent():GetParent(), and reads .questID and
+           .SealMaterialBG off it. ns.Frame.ApplyLayout owns the anchors of
+           the pane and its ScrollFrame. -->
+      <Frame parentKey="Detail" name="ClassicQuestLogDetailFrame">
+        <Layers>
+          <Layer level="BACKGROUND">
+            <!-- The atlas is set at runtime: it follows Quest Text Contrast. -->
+            <Texture parentKey="Bg">
+              <Anchors>
+                <Anchor point="TOPLEFT"/>
+                <Anchor point="TOPRIGHT"/>
+              </Anchors>
+            </Texture>
+          </Layer>
+          <Layer level="BACKGROUND" textureSublevel="1">
+            <Texture parentKey="Empty" atlas="QuestLog-empty-quest-background" setAllPoints="true"/>
+          </Layer>
+          <Layer level="BORDER" textureSublevel="-1">
+            <Texture parentKey="SealMaterialBG" hidden="true">
+              <Anchors>
+                <Anchor point="TOP" y="-40"/>
+              </Anchors>
+            </Texture>
+          </Layer>
+          <Layer level="OVERLAY">
+            <FontString parentKey="EmptyText" inherits="GameFontDisable" text="QUEST_LOG_NO_QUESTS" justifyH="CENTER">
+              <Size x="260" y="0"/>
+              <Anchors>
+                <Anchor point="CENTER"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Frames>
+          <Frame parentKey="BorderFrame" frameLevel="100">
+            <Anchors>
+              <Anchor point="TOPLEFT" x="-3" y="4"/>
+              <Anchor point="BOTTOMRIGHT" x="3" y="17"/>
+            </Anchors>
+            <Layers>
+              <Layer level="BORDER">
+                <Texture parentKey="Border" atlas="questlog-frame" setAllPoints="true"/>
+              </Layer>
+              <Layer level="ARTWORK">
+                <Texture parentKey="TopDetail" atlas="questlog-frame-filigree" useAtlasSize="true">
+                  <Anchors>
+                    <Anchor point="TOP" y="1"/>
+                  </Anchors>
+                </Texture>
+              </Layer>
+            </Layers>
+          </Frame>
+
+          <!-- Header strip. Spoken's Play / Report sit on its right. -->
+          <Frame parentKey="HeaderFrame">
+            <Size y="52"/>
+            <Anchors>
+              <Anchor point="TOPLEFT"/>
+              <Anchor point="TOPRIGHT" x="-1"/>
+            </Anchors>
+            <Layers>
+              <Layer level="BORDER">
+                <Texture atlas="questlog-reward-top-frame" useAtlasSize="true">
+                  <Anchors>
+                    <Anchor point="TOPLEFT"/>
+                    <Anchor point="TOPRIGHT"/>
+                  </Anchors>
+                </Texture>
+              </Layer>
+            </Layers>
+          </Frame>
+
+          <!-- Rewards, pinned to the bottom. The container clips the panel
+               and Detail.lua shrinks it while the text scrolls. -->
+          <Frame parentKey="RewardsFrameContainer" frameLevel="50" clipChildren="true">
+            <Size y="100"/>
+            <Anchors>
+              <Anchor point="BOTTOMLEFT" x="0" y="23"/>
+              <Anchor point="BOTTOMRIGHT" x="-1" y="23"/>
+            </Anchors>
+            <Frames>
+              <Frame parentKey="RewardsFrame">
+                <Size y="275"/>
+                <Anchors>
+                  <Anchor point="TOPLEFT"/>
+                  <Anchor point="TOPRIGHT"/>
+                </Anchors>
+                <Layers>
+                  <Layer level="BORDER" textureSublevel="1">
+                    <Texture parentKey="Bottom" atlas="questlog-reward-bottom" useAtlasSize="true">
+                      <Anchors>
+                        <Anchor point="BOTTOMLEFT"/>
+                        <Anchor point="BOTTOMRIGHT"/>
+                      </Anchors>
+                    </Texture>
+                    <Texture parentKey="Top" atlas="questlog-reward-header-top" useAtlasSize="true">
+                      <Anchors>
+                        <Anchor point="TOPLEFT"/>
+                        <Anchor point="TOPRIGHT"/>
+                      </Anchors>
+                    </Texture>
+                  </Layer>
+                  <Layer level="BACKGROUND">
+                    <Texture parentKey="Background" atlas="questlog-reward-tile-vertical">
+                      <Anchors>
+                        <Anchor point="TOPLEFT" relativeKey="$parent.Top" relativePoint="BOTTOMLEFT"/>
+                        <Anchor point="RIGHT" relativeKey="$parent.Bottom"/>
+                        <Anchor point="BOTTOM"/>
+                      </Anchors>
+                    </Texture>
+                  </Layer>
+                  <Layer level="ARTWORK">
+                    <FontString parentKey="Label" inherits="QuestFont_Huge" text="REWARDS">
+                      <Anchors>
+                        <Anchor point="TOP" x="0" y="-22"/>
+                      </Anchors>
+                      <Color r="0.902" g="0.788" b="0.671"/>
+                    </FontString>
+                  </Layer>
+                </Layers>
+              </Frame>
+            </Frames>
+          </Frame>
+
+          <ScrollFrame parentKey="ScrollFrame" name="ClassicQuestLogDetailScrollFrame" inherits="ScrollFrameTemplate">
+            <KeyValues>
+              <KeyValue key="scrollBarX" value="13" type="number"/>
+              <KeyValue key="scrollBarTopY" value="17" type="number"/>
+              <KeyValue key="scrollBarBottomY" value="-27" type="number"/>
+            </KeyValues>
+            <Size x="298" y="10"/>
+            <Anchors>
+              <Anchor point="TOPLEFT" x="5" y="-43"/>
+            </Anchors>
+            <ScrollChild>
+              <Frame parentKey="ScrollChild" name="$parentScrollChild">
+                <Size x="298" y="10"/>
+              </Frame>
+            </ScrollChild>
+          </ScrollFrame>
+
+          <!-- Quest buttons under the pane: together exactly its width (set in
+               ns.Frame.ApplyLayout), and just below the border's bottom edge (y 17) so its corners stay clear. -->
+          <Button parentKey="AbandonButton" name="ClassicQuestLogFrameAbandonButton" inherits="UIPanelButtonTemplate">
+            <Size x="103" y="22"/>
+            <Anchors>
+              <Anchor point="BOTTOMLEFT" x="0" y="-6"/>
+            </Anchors>
+          </Button>
+          <Button parentKey="ShareButton" name="ClassicQuestLogFrameShareButton" inherits="UIPanelButtonTemplate">
+            <Size x="102" y="22"/>
+            <Anchors>
+              <Anchor point="LEFT" relativeKey="$parent.AbandonButton" relativePoint="RIGHT"/>
+            </Anchors>
+            <Layers>
+              <Layer level="OVERLAY">
+                <Texture inherits="UI-Frame-BtnDivMiddle">
+                  <Anchors>
+                    <Anchor point="RIGHT" relativePoint="LEFT" x="6" y="0"/>
+                  </Anchors>
+                </Texture>
+                <Texture inherits="UI-Frame-BtnDivMiddle">
+                  <Anchors>
+                    <Anchor point="LEFT" relativePoint="RIGHT" x="-6" y="0"/>
+                  </Anchors>
+                </Texture>
+              </Layer>
+            </Layers>
+          </Button>
+          <Button parentKey="TrackButton" name="ClassicQuestLogFrameTrackButton" inherits="UIPanelButtonTemplate">
+            <Size x="103" y="22"/>
+            <Anchors>
+              <Anchor point="LEFT" relativeKey="$parent.ShareButton" relativePoint="RIGHT"/>
+            </Anchors>
+          </Button>
+        </Frames>
+      </Frame>
+
+    </Frames>
+  </Frame>
+
+</Ui>

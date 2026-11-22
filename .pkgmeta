@@ -1,0 +1,20 @@
+package-as: ClassicQuestLog
+
+# The addon lives in ClassicQuestLog/; move it over the package root so the zip
+# holds only that folder. Everything else in the repo has to be ignored here.
+move-folders:
+  ClassicQuestLog/ClassicQuestLog: ClassicQuestLog
+
+ignore:
+  - justfile
+  - README.md
+  - .luacheckrc
+  - .github
+  - .devcontainer
+  - .wow_path
+  - .release
+  - PLAN.md
+  - specs
+  - questlog.png
+  - agentcontainer.yaml
+  - wowtea.toml

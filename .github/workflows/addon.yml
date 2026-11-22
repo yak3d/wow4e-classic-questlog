@@ -1,0 +1,73 @@
+name: Addon
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Lint
+        uses: lunarmodules/luacheck@v1
+        with:
+          args: ClassicQuestLog
+
+  package:
+    needs: [lint]
+    # The packager skips a branch build whose commit already carries a tag, so zips
+    # are only built for tags and pull requests.
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # -d builds the zip without uploading, so its contents can be checked before
+      # anything is published.
+      - name: Package
+        uses: BigWigsMods/packager@v2
+        with:
+          args: -d -u -n {package-name}-{project-version}
+          pandoc: "false"
+
+      # .pkgmeta can only ignore paths, so a new top-level file or folder would ship
+      # in the zip. The zip must hold exactly the addon folder's tracked files plus
+      # the packager's LICENSE and CHANGELOG.md.
+      - name: Check the zip contents
+        run: |
+          zip=$(ls .release/*.zip)
+          want=$(git ls-files ClassicQuestLog | sort)
+          got=$(unzip -Z1 "$zip" | grep -v '/$' | grep -v -x -e ClassicQuestLog/LICENSE -e ClassicQuestLog/CHANGELOG.md | sort)
+          diff <(echo "$want") <(echo "$got")
+          echo "$zip holds $(echo "$got" | wc -l) addon files"
+
+      - name: Upload the zip as an artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClassicQuestLog
+          path: .release/*.zip
+          include-hidden-files: true
+
+      # The packager can't upload a zip it didn't build in the same run (-z skips the
+      # upload too), so a tag builds it again and publishes it: a GitHub release
+      # (a tag with alpha or beta in it becomes a prerelease) and, with the
+      # WAGO_API_TOKEN secret set, the Wago project named by X-Wago-ID in the TOC.
+      - name: Publish to GitHub and Wago
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: BigWigsMods/packager@v2
+        with:
+          args: -u -n {package-name}-{project-version}
+          pandoc: "false"
+        env:
+          GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
+          WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
